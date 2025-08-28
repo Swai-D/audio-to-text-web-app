@@ -4,7 +4,7 @@
 nixPkgs = [
   "php",
   "phpPackages.composer",
-  "nodejs_18",
+  "nodejs_20",
   "npm"
 ]
 
@@ -17,8 +17,10 @@ cmds = [
 [phases.build]
 cmds = [
   "npm run build:prod",
-  "chmod +x scripts/fix-assets.sh",
-  "./scripts/fix-assets.sh"
+  "php artisan config:clear",
+  "php artisan cache:clear",
+  "php artisan view:clear",
+  "php artisan storage:link"
 ]
 
 [start]
