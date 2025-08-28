@@ -5,8 +5,7 @@ nixPkgs = [
   "php",
   "phpPackages.composer",
   "nodejs_18",
-  "npm",
-  "nginx"
+  "npm"
 ]
 
 [phases.install]

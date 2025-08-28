@@ -16,8 +16,7 @@ nixPkgs = [
   "php",
   "phpPackages.composer",
   "nodejs_18",
-  "npm",
-  "nginx"
+  "npm"
 ]
 
 [phases.install]
@@ -36,6 +35,11 @@ cmd = "php artisan serve --host=0.0.0.0 --port=$PORT"
 ```
 
 ### 2. `Procfile`
+```procfile
+web: php artisan serve --host=0.0.0.0 --port=$PORT
+```
+
+**Alternative for Apache servers:**
 ```procfile
 web: vendor/bin/heroku-php-apache2 public/
 ```
