@@ -9,6 +9,12 @@ npm ci
 # Build assets
 npm run build
 
+# Move manifest to correct location
+if [ -f "public/build/.vite/manifest.json" ]; then
+    cp public/build/.vite/manifest.json public/build/manifest.json
+    echo "✅ Manifest moved to correct location"
+fi
+
 # Clear Laravel caches
 php artisan config:clear
 php artisan cache:clear
