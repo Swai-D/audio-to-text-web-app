@@ -214,19 +214,35 @@
 
             <!-- Transcripts Section -->
             <div class="bg-white/60 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-xl">
-                                 <div class="flex items-center justify-between mb-8">
-                     <div>
-                         <h2 class="text-2xl font-bold text-gray-800">Your Transcripts</h2>
-                         <div class="flex items-center space-x-4 mt-2 text-sm text-gray-600">
-                             @if($showMode === 'one')
-                                 <span>{{ $items ? '1' : '0' }} transcript{{ $items ? '' : 's' }} showing</span>
-                             @else
-                                 <span>{{ $items instanceof \Illuminate\Pagination\LengthAwarePaginator ? $items->total() : $items->count() }} transcript{{ ($items instanceof \Illuminate\Pagination\LengthAwarePaginator ? $items->total() : $items->count()) !== 1 ? 's' : '' }} total</span>
-                                 @if($items instanceof \Illuminate\Pagination\LengthAwarePaginator)
-                                     <span>•</span>
-                                     <span>{{ $items->count() }} showing</span>
-                                 @endif
-                             @endif
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Your Transcripts</h2>
+                        <div class="flex items-center space-x-4 mt-2 text-sm text-gray-600">
+                            @if($showMode === 'one')
+                                <span>{{ $items ? '1' : '0' }} transcript{{ $items ? '' : 's' }} showing</span>
+                            @else
+                                <span>{{ $items instanceof \Illuminate\Pagination\LengthAwarePaginator ? $items->total() : $items->count() }} transcript{{ ($items instanceof \Illuminate\Pagination\LengthAwarePaginator ? $items->total() : $items->count()) !== 1 ? 's' : '' }} total</span>
+                                @if($items instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                                    <span>•</span>
+                                    <span>{{ $items->count() }} showing</span>
+                                @endif
+                            @endif
+                        </div>
+                    </div>
+                    
+                    <!-- Bulk Actions -->
+                    @if($showMode !== 'one' && ($items instanceof \Illuminate\Pagination\LengthAwarePaginator ? $items->count() : $items->count()) > 0)
+                    <div class="flex items-center space-x-3">
+                        <button id="select-all-btn" 
+                                class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all duration-300 text-sm">
+                            Select All
+                        </button>
+                        <button id="bulk-delete-btn" 
+                                class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all duration-300 text-sm hidden">
+                            Delete Selected
+                        </button>
+                    </div>
+                    @endif
                              <span>•</span>
                              <span>{{ $storageUsage['file_count'] }} audio files</span>
                              <span>•</span>
