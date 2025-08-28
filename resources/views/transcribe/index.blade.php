@@ -30,6 +30,7 @@
                          </div>
                          
                          <span class="text-sm text-gray-500">Welcome, {{ Auth::user()->name }}</span>
+                         <button onclick="testDeleteModal()" class="px-3 py-1 bg-blue-500 text-white rounded text-xs">Test Modal</button>
                          <a href="{{ route('profile.edit') }}" class="p-2 bg-white/50 rounded-xl hover:bg-white/70 transition-all duration-300">
                              <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
@@ -832,20 +833,60 @@
         const deleteText = document.getElementById('delete-text');
         const deleteLoading = document.getElementById('delete-loading');
 
-        // Show delete modal
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const transcriptId = this.getAttribute('data-transcript-id');
-                const title = this.getAttribute('data-transcript-title');
-                
-                transcriptTitle.textContent = title;
-                deleteForm.action = `/transcribe/${transcriptId}`;
-                
+        // Debug: Check if elements exist
+        console.log('Delete modal elements:', {
+            deleteModal: !!deleteModal,
+            modalContent: !!modalContent,
+            transcriptTitle: !!transcriptTitle,
+            deleteForm: !!deleteForm,
+            cancelDelete: !!cancelDelete,
+            confirmDelete: !!confirmDelete
+        });
+
+        // Test function to show modal
+        window.testDeleteModal = function() {
+            console.log('Testing delete modal...');
+            if (deleteModal) {
                 deleteModal.classList.remove('hidden');
                 setTimeout(() => {
-                    modalContent.classList.remove('scale-95', 'opacity-0');
-                    modalContent.classList.add('scale-100', 'opacity-100');
+                    if (modalContent) {
+                        modalContent.classList.remove('scale-95', 'opacity-0');
+                        modalContent.classList.add('scale-100', 'opacity-100');
+                    }
                 }, 10);
+            }
+        };
+
+        // Show delete modal
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+            console.log('Found delete buttons:', deleteButtons.length);
+            
+            deleteButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    console.log('Delete button clicked!');
+                    
+                    const transcriptId = this.getAttribute('data-transcript-id');
+                    const title = this.getAttribute('data-transcript-title');
+                    
+                    console.log('Transcript ID:', transcriptId, 'Title:', title);
+                    
+                    if (transcriptTitle) transcriptTitle.textContent = title;
+                    if (deleteForm) deleteForm.action = `/transcribe/${transcriptId}`;
+                    
+                    if (deleteModal) {
+                        deleteModal.classList.remove('hidden');
+                        setTimeout(() => {
+                            if (modalContent) {
+                                modalContent.classList.remove('scale-95', 'opacity-0');
+                                modalContent.classList.add('scale-100', 'opacity-100');
+                            }
+                        }, 10);
+                    }
+                });
             });
         });
 
@@ -859,31 +900,39 @@
         }
 
         // Cancel delete
-        cancelDelete.addEventListener('click', hideModal);
+        if (cancelDelete) {
+            cancelDelete.addEventListener('click', hideModal);
+        }
 
         // Close modal on backdrop click
-        deleteModal.addEventListener('click', function(e) {
-            if (e.target === deleteModal) {
-                hideModal();
-            }
-        });
+        if (deleteModal) {
+            deleteModal.addEventListener('click', function(e) {
+                if (e.target === deleteModal) {
+                    hideModal();
+                }
+            });
+        }
 
         // Handle delete form submission
-        deleteForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Show loading state
-            confirmDelete.disabled = true;
-            deleteText.classList.add('hidden');
-            deleteLoading.classList.remove('hidden');
-            
-            // Submit form
-            this.submit();
-        });
+        if (deleteForm) {
+            deleteForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                console.log('Delete form submitted');
+                
+                // Show loading state
+                if (confirmDelete) confirmDelete.disabled = true;
+                if (deleteText) deleteText.classList.add('hidden');
+                if (deleteLoading) deleteLoading.classList.remove('hidden');
+                
+                // Submit form
+                this.submit();
+            });
+        }
 
         // Close modal on escape key
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && !deleteModal.classList.contains('hidden')) {
+            if (e.key === 'Escape' && deleteModal && !deleteModal.classList.contains('hidden')) {
                 hideModal();
             }
         });
