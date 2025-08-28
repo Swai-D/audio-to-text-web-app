@@ -326,18 +326,15 @@
                                      </svg>
                                  </a>
                                  
-                                 <form action="{{ route('transcribe.destroy', $items) }}" method="POST" class="inline delete-form">
-                                     @csrf
-                                     @method('DELETE')
-                                     <button type="submit" 
-                                             class="p-2 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl hover:from-red-600 hover:to-rose-600 transition-all duration-300 transform hover:scale-105"
-                                             onclick="return confirm('Are you sure you want to delete this transcript? This action cannot be undone.')"
-                                             title="Delete transcript">
-                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                         </svg>
-                                     </button>
-                                 </form>
+                                 <button type="button" 
+                                         class="p-2 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl hover:from-red-600 hover:to-rose-600 transition-all duration-300 transform hover:scale-105 delete-btn"
+                                         data-transcript-id="{{ $items->id }}"
+                                         data-transcript-title="{{ $items->title ?? 'Untitled Transcript' }}"
+                                         title="Delete transcript">
+                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                     </svg>
+                                 </button>
                              </div>
                          </div>
                          
@@ -433,18 +430,15 @@
                                              </svg>
                                          </a>
                                          
-                                         <form action="{{ route('transcribe.destroy', $transcript) }}" method="POST" class="inline delete-form">
-                                             @csrf
-                                             @method('DELETE')
-                                             <button type="submit" 
-                                                     class="p-2 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl hover:from-red-600 hover:to-rose-600 transition-all duration-300 transform hover:scale-105"
-                                                     onclick="return confirm('Are you sure you want to delete this transcript? This action cannot be undone.')"
-                                                     title="Delete transcript">
-                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                 </svg>
-                                             </button>
-                                         </form>
+                                         <button type="button" 
+                                                 class="p-2 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl hover:from-red-600 hover:to-rose-600 transition-all duration-300 transform hover:scale-105 delete-btn"
+                                                 data-transcript-id="{{ $transcript->id }}"
+                                                 data-transcript-title="{{ $transcript->title ?? 'Untitled Transcript' }}"
+                                                 title="Delete transcript">
+                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                             </svg>
+                                         </button>
                                     </div>
                 </div>
 
@@ -826,25 +820,129 @@
             }
         });
 
-        // Delete confirmation
-        document.querySelectorAll('.delete-form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                if (!confirm('Are you sure you want to delete this transcript? This action cannot be undone and will also delete the associated audio file.')) {
-                    e.preventDefault();
-                } else {
-                    // Show loading state
-                    const button = this.querySelector('button');
-                    const originalText = button.innerHTML;
-                    button.disabled = true;
-                    button.innerHTML = `
-                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Deleting...
-                    `;
-                }
+
+
+        // Custom Delete Modal
+        const deleteModal = document.getElementById('delete-modal');
+        const modalContent = document.getElementById('modal-content');
+        const transcriptTitle = document.getElementById('transcript-title');
+        const deleteForm = document.getElementById('delete-form');
+        const cancelDelete = document.getElementById('cancel-delete');
+        const confirmDelete = document.getElementById('confirm-delete');
+        const deleteText = document.getElementById('delete-text');
+        const deleteLoading = document.getElementById('delete-loading');
+
+        // Show delete modal
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const transcriptId = this.getAttribute('data-transcript-id');
+                const title = this.getAttribute('data-transcript-title');
+                
+                transcriptTitle.textContent = title;
+                deleteForm.action = `/transcribe/${transcriptId}`;
+                
+                deleteModal.classList.remove('hidden');
+                setTimeout(() => {
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                }, 10);
             });
         });
+
+        // Hide modal
+        function hideModal() {
+            modalContent.classList.add('scale-95', 'opacity-0');
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            setTimeout(() => {
+                deleteModal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Cancel delete
+        cancelDelete.addEventListener('click', hideModal);
+
+        // Close modal on backdrop click
+        deleteModal.addEventListener('click', function(e) {
+            if (e.target === deleteModal) {
+                hideModal();
+            }
+        });
+
+        // Handle delete form submission
+        deleteForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show loading state
+            confirmDelete.disabled = true;
+            deleteText.classList.add('hidden');
+            deleteLoading.classList.remove('hidden');
+            
+            // Submit form
+            this.submit();
+        });
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !deleteModal.classList.contains('hidden')) {
+                hideModal();
+            }
+        });
     </script>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="modal-content">
+                <div class="text-center">
+                    <!-- Warning Icon -->
+                    <div class="w-16 h-16 bg-gradient-to-r from-red-500 to-rose-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                    </div>
+                    
+                    <!-- Title -->
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Delete Transcript</h3>
+                    <p class="text-gray-600 mb-6">Are you sure you want to delete "<span id="transcript-title" class="font-semibold text-gray-800"></span>"?</p>
+                    
+                    <!-- Warning Message -->
+                    <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-red-600 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                            <div class="text-left">
+                                <p class="text-red-800 font-medium text-sm">This action cannot be undone!</p>
+                                <p class="text-red-700 text-xs mt-1">The transcript and associated audio file will be permanently deleted.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="flex space-x-3">
+                        <button id="cancel-delete" 
+                                class="flex-1 px-6 py-3 bg-gray-500 text-white font-semibold rounded-xl hover:bg-gray-600 transition-all duration-300">
+                            Cancel
+                        </button>
+                        <form id="delete-form" method="POST" class="flex-1">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" 
+                                    id="confirm-delete"
+                                    class="w-full px-6 py-3 bg-gradient-to-r from-red-500 to-rose-500 text-white font-semibold rounded-xl hover:from-red-600 hover:to-rose-600 transition-all duration-300 transform hover:scale-105">
+                                <span id="delete-text">Delete</span>
+                                <span id="delete-loading" class="hidden">
+                                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Deleting...
+                                </span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </x-app-layout>
