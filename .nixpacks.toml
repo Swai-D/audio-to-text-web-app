@@ -1,0 +1,24 @@
+# .nixpacks.toml
+
+[phases.setup]
+nixPkgs = [
+  "php",
+  "phpPackages.composer",
+  "nodejs_18",
+  "npm",
+  "nginx"
+]
+
+[phases.install]
+cmds = [
+  "composer install --no-interaction --prefer-dist --optimize-autoloader --ignore-platform-reqs",
+  "npm ci"
+]
+
+[phases.build]
+cmds = [
+  "npm run build"
+]
+
+[start]
+cmd = "php artisan serve --host=0.0.0.0 --port=$PORT"

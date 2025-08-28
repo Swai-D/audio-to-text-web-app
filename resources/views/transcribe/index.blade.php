@@ -896,7 +896,7 @@
             // Handle delete form submission
             if (deleteForm) {
                 deleteForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
+                e.preventDefault();
                     
                     // Show loading state
                     if (confirmDelete) confirmDelete.disabled = true;
@@ -913,8 +913,8 @@
                 if (e.key === 'Escape' && deleteModal && !deleteModal.classList.contains('hidden')) {
                     hideModal();
                 }
+                });
             });
-        });
 
         // Hide modal
         function hideModal() {
@@ -1021,3 +1021,4 @@
         </div>
     </div>
 </x-app-layout>
+
