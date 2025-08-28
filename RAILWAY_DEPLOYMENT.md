@@ -27,8 +27,7 @@ cmds = [
 
 [phases.build]
 cmds = [
-  "chmod +x build-assets.sh",
-  "./build-assets.sh"
+  "npm run build"
 ]
 
 [start]
@@ -92,38 +91,7 @@ Thumbs.db
 # public/build/
 ```
 
-### 4. `build-assets.sh`
-```bash
-#!/bin/bash
 
-# Build assets for production
-echo "Building assets for production..."
-
-# Install dependencies
-npm ci
-
-# Build assets
-npm run build
-
-# Move manifest to correct location
-if [ -f "public/build/.vite/manifest.json" ]; then
-    cp public/build/.vite/manifest.json public/build/manifest.json
-    echo "✅ Manifest moved to correct location"
-fi
-
-# Clear Laravel caches
-php artisan config:clear
-php artisan cache:clear
-php artisan view:clear
-php artisan route:clear
-
-# Cache for production
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-
-echo "✅ Build completed successfully"
-```
 
 
 
@@ -291,13 +259,13 @@ class AssetHelper {
 - ✅ `.nixpacks.toml` - Build configuration
 - ✅ `Procfile` - Web server configuration
 - ✅ `.railwayignore` - Exclude unnecessary files
-- ✅ `@vite()` directive in layouts
+- ✅ `@vite()` directive in layouts (simple approach)
 
 ### 2. Build Process:
 1. Railway installs PHP, Node.js 18, npm
 2. Runs `composer install`
 3. Runs `npm ci`
-4. Runs `npm run build` (Vite builds assets)
+4. Runs `npm run build` (Vite builds assets automatically)
 5. Starts Laravel server
 
 ### 3. Asset Loading:
