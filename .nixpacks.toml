@@ -11,18 +11,22 @@ nixPkgs = [
 [phases.install]
 cmds = [
   "composer install --no-interaction --prefer-dist --optimize-autoloader --ignore-platform-reqs",
-  "npm ci"
+  "npm ci --production=false"
 ]
 
 [phases.build]
 cmds = [
-  "echo 'Starting build process...'",
+  "echo '=== BUILD PROCESS START ==='",
   "pwd",
   "ls -la",
   "echo 'Node version:'",
   "node --version",
   "echo 'NPM version:'",
   "npm --version",
+  "echo 'Checking package.json...'",
+  "cat package.json",
+  "echo 'Installing dependencies...'",
+  "npm ci",
   "echo 'Building assets...'",
   "npm run build",
   "echo 'Build completed, checking output...'",
@@ -31,7 +35,7 @@ cmds = [
   "ls -la public/build/assets/",
   "echo 'Manifest content:'",
   "cat public/build/manifest.json",
-  "echo 'Build process finished'"
+  "echo '=== BUILD PROCESS END ==='"
 ]
 
 [phases.postBuild]

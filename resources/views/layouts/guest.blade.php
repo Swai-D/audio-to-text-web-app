@@ -12,7 +12,16 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @if(file_exists(public_path('build/manifest.json')))
+            @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @else
+            <!-- Fallback for production without manifest -->
+            <script>
+                console.warn('Vite manifest not found, loading fallback assets');
+            </script>
+            <link rel="stylesheet" href="{{ asset('build/assets/app.css') }}">
+            <script src="{{ asset('build/assets/app.js') }}" defer></script>
+        @endif
     </head>
     <body class="font-sans antialiased">
         <!-- Animated Background -->
@@ -24,37 +33,14 @@
         <!-- Floating Elements -->
         <div class="fixed inset-0 overflow-hidden pointer-events-none">
             <div class="absolute top-20 left-10 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-            <div class="absolute bottom-20 right-10 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl animate-pulse delay-500"></div>
+            <div class="absolute top-40 right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+            <div class="absolute bottom-20 left-1/2 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl animate-pulse delay-500"></div>
         </div>
 
-        <!-- Main Content -->
+        <!-- Content -->
         <div class="relative z-10 min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0">
-            <!-- Logo -->
-            <div class="mb-8">
-                <a href="/welcome" class="flex items-center space-x-3 group">
-                    <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl font-bold text-white">Sermon Transcriber</h1>
-                        <p class="text-gray-300 text-sm">AI-Powered Transcription</p>
-                    </div>
-                </a>
-            </div>
-
-            <!-- Auth Card -->
-            <div class="w-full sm:max-w-md px-6 py-8 bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl shadow-2xl">
+            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white/80 backdrop-blur-md shadow-2xl overflow-hidden sm:rounded-2xl">
                 {{ $slot }}
-            </div>
-
-            <!-- Back to Home -->
-            <div class="mt-8">
-                <a href="/welcome" class="text-gray-300 hover:text-white transition-colors duration-300 text-sm">
-                    ← Back to Welcome
-                </a>
             </div>
         </div>
     </body>
