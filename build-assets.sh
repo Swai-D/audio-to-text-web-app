@@ -6,6 +6,9 @@ echo "Building assets for production..."
 # Install dependencies
 npm ci
 
+# Clear previous build
+rm -rf public/build
+
 # Build assets
 npm run build
 
@@ -13,8 +16,18 @@ npm run build
 if [ -f "public/build/manifest.json" ]; then
     echo "✅ Vite manifest created successfully"
     cat public/build/manifest.json
+    echo ""
+    echo "📁 Build directory contents:"
+    ls -la public/build/
+    echo ""
+    echo "📁 Assets directory contents:"
+    ls -la public/build/assets/
 else
     echo "❌ Vite manifest not found"
+    echo "📁 Current directory:"
+    pwd
+    echo "📁 Public directory contents:"
+    ls -la public/
     exit 1
 fi
 

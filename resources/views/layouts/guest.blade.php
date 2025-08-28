@@ -12,7 +12,20 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @if(app()->environment('production'))
+            @if(file_exists(public_path('build/manifest.json')))
+                @vite(['resources/css/app.css', 'resources/js/app.js'])
+            @else
+                <!-- Fallback for production without manifest -->
+                <script>
+                    console.warn('Vite manifest not found, loading fallback assets');
+                </script>
+                <link rel="stylesheet" href="{{ asset('build/assets/app.css') }}">
+                <script src="{{ asset('build/assets/app.js') }}" defer></script>
+            @endif
+        @else
+            @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @endif
     </head>
     <body class="font-sans antialiased">
         <!-- Animated Background -->
