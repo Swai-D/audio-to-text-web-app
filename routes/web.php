@@ -22,18 +22,12 @@ Route::middleware('auth')->group(function () {
     // Alternative route for transcribe (same as home)
     Route::get('/transcribe', [TranscriptionController::class, 'index'])->name('transcribe');
     Route::post('/transcribe', [TranscriptionController::class, 'store'])->name('transcribe.store');
-    
-    // CRUD operations for transcripts
-    Route::get('/transcribe/{transcript}', [TranscriptionController::class, 'show'])->name('transcribe.show');
-    Route::get('/transcribe/{transcript}/edit', [TranscriptionController::class, 'edit'])->name('transcribe.edit');
-    Route::put('/transcribe/{transcript}', [TranscriptionController::class, 'update'])->name('transcribe.update');
-    Route::delete('/transcribe/{transcript}', [TranscriptionController::class, 'destroy'])->name('transcribe.destroy');
-    Route::delete('/transcribe/bulk', [TranscriptionController::class, 'bulkDestroy'])->name('transcribe.bulk-destroy');
-    
-    // Export and AI operations
     Route::post('/transcribe/{transcript}/summarize', [TranscriptionController::class, 'summarize'])->name('transcribe.summarize');
     Route::get('/transcribe/{transcript}/pdf', [TranscriptionController::class, 'downloadPdf'])->name('transcribe.pdf');
     Route::get('/transcribe/{transcript}/docx', [TranscriptionController::class, 'downloadDocx'])->name('transcribe.docx');
+    Route::delete('/transcribe/{transcript}', [TranscriptionController::class, 'destroy'])->name('transcribe.destroy');
+    Route::get('/transcribe/{transcript}/edit', [TranscriptionController::class, 'edit'])->name('transcribe.edit');
+    Route::put('/transcribe/{transcript}', [TranscriptionController::class, 'update'])->name('transcribe.update');
     
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

@@ -537,16 +537,44 @@ SERMON TRANSCRIPT:
     }
 
     /**
-     * Show a specific transcript
+     * Delete a transcript and its associated audio file
      */
-    public function show(Transcript $transcript)
+    public function destroy(Transcript $transcript)
     {
-        // Ensure user can only view their own transcripts
-        if ($transcript->user_id !== auth()->id()) {
-            abort(403, 'Unauthorized access to transcript.');
-        }
+        try {
+            // Check if user owns this transcript
+            if ($transcript->user_id !== auth()->id()) {
+                return back()->withErrors(['delete' => 'You can only delete your own transcripts.']);
+            }
 
-        return view('transcribe.show', compact('transcript'));
+            // Log deletion attempt
+            \Log::info('Deleting transcript', [
+                'transcript_id' => $transcript->id,
+                'user_id' => auth()->id(),
+                'audio_path' => $transcript->audio_path
+            ]);
+
+            // Delete the audio file from storage
+            if ($transcript->audio_path && Storage::disk('public')->exists($transcript->audio_path)) {
+                Storage::disk('public')->delete($transcript->audio_path);
+                \Log::info('Audio file deleted', ['path' => $transcript->audio_path]);
+            }
+
+            // Delete the transcript from database
+            $transcript->delete();
+
+            return back()->with('ok', 'Transcript deleted successfully!');
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to delete transcript: ' . $e->getMessage(), [
+                'transcript_id' => $transcript->id,
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return back()->withErrors(['delete' => 'Failed to delete transcript: ' . $e->getMessage()]);
+        }
     }
 
     /**
@@ -554,9 +582,9 @@ SERMON TRANSCRIPT:
      */
     public function edit(Transcript $transcript)
     {
-        // Ensure user can only edit their own transcripts
+        // Check if user owns this transcript
         if ($transcript->user_id !== auth()->id()) {
-            abort(403, 'Unauthorized access to transcript.');
+            return back()->withErrors(['edit' => 'You can only edit your own transcripts.']);
         }
 
         return view('transcribe.edit', compact('transcript'));
@@ -567,110 +595,50 @@ SERMON TRANSCRIPT:
      */
     public function update(Request $request, Transcript $transcript)
     {
-        // Ensure user can only update their own transcripts
+        // Check if user owns this transcript
         if ($transcript->user_id !== auth()->id()) {
-            abort(403, 'Unauthorized access to transcript.');
+            return back()->withErrors(['update' => 'You can only update your own transcripts.']);
         }
 
+        // Validate the request
         $request->validate([
             'title' => 'nullable|string|max:255',
-            'text' => 'nullable|string',
+            'text' => 'required|string|min:10',
             'summary' => 'nullable|string'
+        ], [
+            'title.max' => 'Title must be less than 255 characters.',
+            'text.required' => 'Transcript text is required.',
+            'text.min' => 'Transcript text must be at least 10 characters long.'
         ]);
 
         try {
+            // Update the transcript
             $transcript->update([
                 'title' => $request->input('title'),
                 'text' => $request->input('text'),
                 'summary' => $request->input('summary')
             ]);
 
-            return redirect()->route('transcribe.index')->with('ok', 'Transcript updated successfully!');
-        } catch (\Exception $e) {
-            \Log::error('Transcript update failed: ' . $e->getMessage(), [
+            // Log the update
+            \Log::info('Transcript updated', [
                 'transcript_id' => $transcript->id,
                 'user_id' => auth()->id(),
-                'error' => $e->getMessage()
+                'title_updated' => !empty($request->input('title')),
+                'text_updated' => true,
+                'summary_updated' => !empty($request->input('summary'))
+            ]);
+
+            return redirect()->route('home')->with('ok', 'Transcript updated successfully!');
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to update transcript: ' . $e->getMessage(), [
+                'transcript_id' => $transcript->id,
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
 
             return back()->withErrors(['update' => 'Failed to update transcript: ' . $e->getMessage()]);
-        }
-    }
-
-    /**
-     * Delete the specified transcript
-     */
-    public function destroy(Transcript $transcript)
-    {
-        // Ensure user can only delete their own transcripts
-        if ($transcript->user_id !== auth()->id()) {
-            abort(403, 'Unauthorized access to transcript.');
-        }
-
-        try {
-            // Delete the audio file from storage
-            if ($transcript->audio_path && Storage::disk('public')->exists($transcript->audio_path)) {
-                Storage::disk('public')->delete($transcript->audio_path);
-            }
-
-            // Delete the transcript from database
-            $transcript->delete();
-
-            return redirect()->route('transcribe.index')->with('ok', 'Transcript deleted successfully!');
-        } catch (\Exception $e) {
-            \Log::error('Transcript deletion failed: ' . $e->getMessage(), [
-                'transcript_id' => $transcript->id,
-                'user_id' => auth()->id(),
-                'error' => $e->getMessage()
-            ]);
-
-            return back()->withErrors(['delete' => 'Failed to delete transcript: ' . $e->getMessage()]);
-        }
-    }
-
-    /**
-     * Bulk delete transcripts
-     */
-    public function bulkDestroy(Request $request)
-    {
-        $request->validate([
-            'transcript_ids' => 'required|array',
-            'transcript_ids.*' => 'integer|exists:transcripts,id'
-        ]);
-
-        try {
-            $transcriptIds = $request->input('transcript_ids');
-            $deletedCount = 0;
-
-            foreach ($transcriptIds as $transcriptId) {
-                $transcript = Transcript::where('id', $transcriptId)
-                    ->where('user_id', auth()->id())
-                    ->first();
-
-                if ($transcript) {
-                    // Delete the audio file from storage
-                    if ($transcript->audio_path && Storage::disk('public')->exists($transcript->audio_path)) {
-                        Storage::disk('public')->delete($transcript->audio_path);
-                    }
-
-                    $transcript->delete();
-                    $deletedCount++;
-                }
-            }
-
-            $message = $deletedCount > 1 
-                ? "{$deletedCount} transcripts deleted successfully!" 
-                : "{$deletedCount} transcript deleted successfully!";
-
-            return redirect()->route('transcribe.index')->with('ok', $message);
-        } catch (\Exception $e) {
-            \Log::error('Bulk transcript deletion failed: ' . $e->getMessage(), [
-                'user_id' => auth()->id(),
-                'transcript_ids' => $request->input('transcript_ids'),
-                'error' => $e->getMessage()
-            ]);
-
-            return back()->withErrors(['delete' => 'Failed to delete transcripts: ' . $e->getMessage()]);
         }
     }
 }
