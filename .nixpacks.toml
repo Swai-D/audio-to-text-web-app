@@ -16,9 +16,22 @@ cmds = [
 
 [phases.build]
 cmds = [
+  "echo 'Starting build process...'",
+  "pwd",
+  "ls -la",
+  "echo 'Node version:'",
+  "node --version",
+  "echo 'NPM version:'",
+  "npm --version",
+  "echo 'Building assets...'",
   "npm run build",
+  "echo 'Build completed, checking output...'",
+  "ls -la public/",
+  "ls -la public/build/",
   "ls -la public/build/assets/",
-  "echo 'Build completed'"
+  "echo 'Manifest content:'",
+  "cat public/build/manifest.json",
+  "echo 'Build process finished'"
 ]
 
 [phases.postBuild]
