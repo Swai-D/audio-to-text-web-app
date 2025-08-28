@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Blade;
+use App\Helpers\AssetHelper;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,5 +25,18 @@ class AppServiceProvider extends ServiceProvider
         if (config('app.env') === 'production') {
             URL::forceScheme('https');
         }
+
+        // Register custom Blade directives
+        Blade::directive('viteCss', function ($expression) {
+            return "<?php echo App\Helpers\AssetHelper::viteCss($expression); ?>";
+        });
+
+        Blade::directive('viteJs', function ($expression) {
+            return "<?php echo App\Helpers\AssetHelper::viteJs($expression); ?>";
+        });
+
+        Blade::directive('viteAsset', function ($expression) {
+            return "<?php echo App\Helpers\AssetHelper::viteAsset($expression); ?>";
+        });
     }
 }

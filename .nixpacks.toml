@@ -16,9 +16,9 @@ cmds = [
 
 [phases.build]
 cmds = [
-  "npm run build",
-  "ls -la public/build/assets/",
-  "echo 'Build completed'"
+  "npm run build:prod",
+  "chmod +x scripts/fix-assets.sh",
+  "./scripts/fix-assets.sh"
 ]
 
 [start]

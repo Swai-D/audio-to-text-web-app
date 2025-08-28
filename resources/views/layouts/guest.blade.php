@@ -12,7 +12,12 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @if(app()->environment(['local', 'development']))
+            @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @else
+            <link rel="stylesheet" href="{{ asset('build/assets/' . App\Helpers\AssetHelper::getAssetFilename('resources/css/app.css')) }}">
+            <script src="{{ asset('build/assets/' . App\Helpers\AssetHelper::getAssetFilename('resources/js/app.js')) }}" defer></script>
+        @endif
     </head>
     <body class="font-sans antialiased">
         <!-- Animated Background -->
