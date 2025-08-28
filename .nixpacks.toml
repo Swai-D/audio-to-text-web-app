@@ -16,7 +16,8 @@ cmds = [
 
 [phases.build]
 cmds = [
-  "npm run build"
+  "chmod +x build-assets.sh",
+  "./build-assets.sh"
 ]
 
 [start]

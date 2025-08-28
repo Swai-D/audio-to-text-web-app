@@ -13,6 +13,13 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        
+        <!-- Fallback for production -->
+        @if(app()->environment('production') && !file_exists(public_path('build/manifest.json')))
+            <script>
+                console.warn('Vite manifest not found, using fallback assets');
+            </script>
+        @endif
     </head>
     <body class="font-sans antialiased">
         <div class="min-h-screen">
