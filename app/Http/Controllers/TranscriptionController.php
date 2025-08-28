@@ -38,12 +38,12 @@ class TranscriptionController extends Controller
     {
         // Validate the request
         $request->validate([
-            'audio' => 'required|file|mimes:mp3,wav,m4a,mp4,mpeg|max:307200', // 300MB for very long sermons
+            'audio' => 'required|file|mimes:mp3,wav,m4a,mp4,mpeg,webm|max:307200', // 300MB for very long sermons
             'language' => 'nullable|in:auto,sw,en'
         ], [
             'audio.required' => 'Please select an audio file to transcribe.',
             'audio.file' => 'The uploaded file is not valid.',
-            'audio.mimes' => 'Only MP3, WAV, M4A, and MP4 files are supported.',
+            'audio.mimes' => 'Only MP3, WAV, M4A, MP4, and WEBM files are supported.',
             'audio.max' => 'File size must be less than 300MB.',
             'language.in' => 'Please select a valid language option.'
         ]);

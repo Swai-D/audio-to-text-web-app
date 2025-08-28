@@ -110,7 +110,7 @@
                                         <input type="file" 
                                                name="audio" 
                                                id="audio-file"
-                                               accept=".mp3,.wav,.m4a,.mp4"
+                                               accept=".mp3,.wav,.m4a,.mp4,.webm"
                                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                                required>
                                         <div class="border-2 border-dashed border-purple-300 rounded-xl p-6 text-center hover:border-purple-400 transition-colors duration-300" id="drop-zone">
@@ -118,7 +118,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                                             </svg>
                                             <p class="text-gray-600" id="file-text">Click to select or drag files here</p>
-                                                                                         <p class="text-xs text-gray-500 mt-1">MP3, WAV, M4A, MP4 (max 300MB)</p>
+                                                                                         <p class="text-xs text-gray-500 mt-1">MP3, WAV, M4A, MP4, WEBM (max 300MB)</p>
                                         </div>
                                     </div>
                                     
@@ -164,19 +164,48 @@
                                             <p>Click to start recording</p>
                                         </div>
                                         <div id="recording-timer" class="text-2xl font-bold text-green-600 mb-4 hidden">00:00</div>
+                                        
+                                        <!-- Audio Preview -->
+                                        <div id="audio-preview" class="mb-4 hidden">
+                                            <audio id="recorded-audio" controls class="w-full">
+                                                Your browser does not support the audio element.
+                                            </audio>
+                                        </div>
+                                        
                                         <button id="record-btn" 
                                                 class="w-16 h-16 bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white hover:from-green-600 hover:to-teal-600 transition-all duration-300 transform hover:scale-110 shadow-lg">
                                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
-                            </svg>
+                                            </svg>
                                         </button>
-                        </div>
+                                    </div>
                                     
-                                    <button id="save-recording" 
-                                            class="w-full py-3 px-6 bg-gradient-to-r from-green-500 to-teal-500 text-white font-semibold rounded-xl hover:from-green-600 hover:to-teal-600 transition-all duration-300 transform hover:scale-105 shadow-lg hidden">
-                                        Save & Transcribe Recording
-                    </button>
-                </div>
+                                    <!-- Recording Controls -->
+                                    <div class="flex space-x-2">
+                                        <button id="download-recording" 
+                                                class="flex-1 py-2 px-4 bg-gray-500 text-white font-medium rounded-lg hover:bg-gray-600 transition-all duration-300 hidden">
+                                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                            </svg>
+                                            Download
+                                        </button>
+                                        
+                                        <button id="save-recording" 
+                                                class="flex-1 py-2 px-4 bg-gradient-to-r from-green-500 to-teal-500 text-white font-semibold rounded-lg hover:from-green-600 hover:to-teal-600 transition-all duration-300 hidden">
+                                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                            </svg>
+                                            Transcribe
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Recording Form -->
+                                    <form id="recording-form" action="{{ route('transcribe.store') }}" method="POST" enctype="multipart/form-data" class="hidden">
+                                        @csrf
+                                        <input type="hidden" name="language" value="auto">
+                                        <input type="file" name="audio" id="recording-file" accept="audio/*" class="hidden">
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -549,7 +578,7 @@
                  }
 
                  // Validate file type - check both MIME type and extension
-                 const allowedTypes = ['audio/mp3', 'audio/wav', 'audio/m4a', 'audio/mp4', 'video/mp4', 'audio/mpeg'];
+                 const allowedTypes = ['audio/mp3', 'audio/wav', 'audio/m4a', 'audio/mp4', 'video/mp4', 'audio/mpeg', 'audio/webm'];
                  const allowedExtensions = ['mp3', 'wav', 'm4a', 'mp4'];
                  const fileExtension = file.name.split('.').pop().toLowerCase();
                  
@@ -611,43 +640,69 @@
         let audioChunks = [];
         let isRecording = false;
         let recordingTimer;
+        let recordedBlob = null;
 
         const recordBtn = document.getElementById('record-btn');
         const recordingStatus = document.getElementById('recording-status');
         const recordingTimerEl = document.getElementById('recording-timer');
         const saveRecordingBtn = document.getElementById('save-recording');
+        const audioPreview = document.getElementById('audio-preview');
+        const recordedAudio = document.getElementById('recorded-audio');
+        const recordingForm = document.getElementById('recording-form');
+        const recordingFileInput = document.getElementById('recording-file');
+        const downloadRecordingBtn = document.getElementById('download-recording');
 
         recordBtn.addEventListener('click', async () => {
             if (!isRecording) {
                 try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            sampleRate: 44100
+                        } 
+                    });
+                    
+                    mediaRecorder = new MediaRecorder(stream, {
+                        mimeType: 'audio/webm;codecs=opus'
+                    });
                     audioChunks = [];
 
                     mediaRecorder.ondataavailable = (event) => {
-                        audioChunks.push(event.data);
+                        if (event.data.size > 0) {
+                            audioChunks.push(event.data);
+                        }
                     };
 
                     mediaRecorder.onstop = () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                        // Here you would typically upload the blob to your server
-                        console.log('Recording saved:', audioBlob);
+                        recordedBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        recordedAudio.src = URL.createObjectURL(recordedBlob);
+                        audioPreview.classList.remove('hidden');
+                        saveRecordingBtn.classList.remove('hidden');
+                        downloadRecordingBtn.classList.remove('hidden');
+                        
+                        // Stop all tracks
+                        stream.getTracks().forEach(track => track.stop());
+                        
+                        showNotification('Recording completed! You can now transcribe or download.', 'success');
                     };
 
-                    mediaRecorder.start();
+                    mediaRecorder.start(1000); // Collect data every second
                     isRecording = true;
+                    
+                    // Change button to stop icon
                     recordBtn.innerHTML = `
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M6 4h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2z"/>
                         </svg>
                     `;
-                                         recordingStatus.innerHTML = '<p class="text-red-600">Recording...</p>';
-                     recordingTimerEl.classList.remove('hidden');
-                     saveRecordingBtn.classList.remove('hidden');
-                     
-                     // Show recording started notification
-                     showNotification('Recording started! Click the button again to stop.', 'info');
+                    recordBtn.classList.add('bg-red-500', 'hover:bg-red-600');
+                    recordBtn.classList.remove('bg-gradient-to-r', 'from-green-500', 'to-teal-500', 'hover:from-green-600', 'hover:to-teal-600');
+                    
+                    recordingStatus.innerHTML = '<p class="text-red-600 font-medium">Recording... Click to stop</p>';
+                    recordingTimerEl.classList.remove('hidden');
+                    
+                    showNotification('Recording started! Click the stop button when finished.', 'info');
                     
                     // Start timer
                     let seconds = 0;
@@ -657,23 +712,75 @@
                         const secs = seconds % 60;
                         recordingTimerEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
                     }, 1000);
-                                 } catch (err) {
-                     console.error('Error accessing microphone:', err);
-                     showNotification('Unable to access microphone. Please check permissions.', 'error');
-                 }
+                    
+                } catch (err) {
+                    console.error('Error accessing microphone:', err);
+                    showNotification('Unable to access microphone. Please check browser permissions and try again.', 'error');
+                }
             } else {
+                // Stop recording
                 mediaRecorder.stop();
                 isRecording = false;
+                clearInterval(recordingTimer);
+                
+                // Reset button to record icon
                 recordBtn.innerHTML = `
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
                     </svg>
                 `;
-                                 recordingStatus.innerHTML = '<p class="text-green-600">Recording saved!</p>';
-                 clearInterval(recordingTimer);
-                 
-                 // Show recording stopped notification
-                 showNotification('Recording stopped! Audio saved successfully.', 'success');
+                recordBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                recordBtn.classList.add('bg-gradient-to-r', 'from-green-500', 'to-teal-500', 'hover:from-green-600', 'hover:to-teal-600');
+                
+                recordingStatus.innerHTML = '<p class="text-green-600 font-medium">Recording saved!</p>';
+            }
+        });
+
+        // Transcribe recording
+        saveRecordingBtn.addEventListener('click', () => {
+            if (recordedBlob) {
+                // Create a File object from the blob
+                const file = new File([recordedBlob], 'recorded_sermon.webm', { 
+                    type: 'audio/webm',
+                    lastModified: Date.now()
+                });
+                
+                // Create a new FileList-like object
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                recordingFileInput.files = dataTransfer.files;
+                
+                // Show loading state
+                saveRecordingBtn.disabled = true;
+                saveRecordingBtn.innerHTML = `
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Processing...
+                `;
+                
+                showNotification('Uploading and transcribing your recording...', 'info');
+                recordingForm.submit();
+            } else {
+                showNotification('No recording available. Please record audio first.', 'warning');
+            }
+        });
+
+        // Download recording
+        downloadRecordingBtn.addEventListener('click', () => {
+            if (recordedBlob) {
+                const url = URL.createObjectURL(recordedBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `sermon_recording_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.webm`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showNotification('Recording downloaded successfully!', 'success');
+            } else {
+                showNotification('No recording available to download.', 'warning');
             }
         });
     </script>
