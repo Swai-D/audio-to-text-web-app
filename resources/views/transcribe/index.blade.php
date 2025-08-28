@@ -10,21 +10,39 @@
                         </h1>
                         <p class="text-gray-600 mt-1">Transform your audio sermons into text with AI</p>
                     </div>
-                    <div class="flex items-center space-x-4">
-                        <span class="text-sm text-gray-500">Welcome, {{ Auth::user()->name }}</span>
-                        <a href="{{ route('profile.edit') }}" class="p-2 bg-white/50 rounded-xl hover:bg-white/70 transition-all duration-300">
-                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                            </svg>
-                        </a>
-                        <a href="{{ route('logout') }}" 
-                           onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-                           class="p-2 bg-red-500/10 rounded-xl hover:bg-red-500/20 transition-all duration-300">
-                            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                            </svg>
-                        </a>
-                    </div>
+                                         <div class="flex items-center space-x-4">
+                         <!-- Storage Info -->
+                         <div class="flex items-center space-x-3 bg-white/50 rounded-xl px-4 py-2">
+                             <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                             </svg>
+                             <div class="text-xs">
+                                 <div class="text-gray-700 font-medium">{{ $storageUsage['formatted_size'] }}</div>
+                                 <div class="text-gray-500">{{ $storageUsage['file_count'] }} files</div>
+                                 @php
+                                     $usagePercent = min(100, ($storageUsage['total_size'] / (300 * 1024 * 1024)) * 100); // 300MB limit
+                                     $colorClass = $usagePercent > 80 ? 'bg-red-500' : ($usagePercent > 60 ? 'bg-yellow-500' : 'bg-green-500');
+                                 @endphp
+                                 <div class="w-16 bg-gray-200 rounded-full h-1 mt-1">
+                                     <div class="{{ $colorClass }} h-1 rounded-full" style="width: {{ $usagePercent }}%"></div>
+                                 </div>
+                             </div>
+                         </div>
+                         
+                         <span class="text-sm text-gray-500">Welcome, {{ Auth::user()->name }}</span>
+                         <a href="{{ route('profile.edit') }}" class="p-2 bg-white/50 rounded-xl hover:bg-white/70 transition-all duration-300">
+                             <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                             </svg>
+                         </a>
+                         <a href="{{ route('logout') }}" 
+                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
+                            class="p-2 bg-red-500/10 rounded-xl hover:bg-red-500/20 transition-all duration-300">
+                             <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                             </svg>
+                         </a>
+                     </div>
                     
                     <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
                         @csrf
@@ -41,37 +59,37 @@
                     <div class="flex items-center">
                         <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
+                    </svg>
                         <p class="text-green-800 font-medium">{{ session('ok') }}</p>
-                    </div>
                 </div>
+            </div>
             @endif
 
             @if($errors->any())
                 <div class="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
                     <div class="flex items-start">
                         <svg class="w-5 h-5 text-red-600 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <div>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div>
                             <p class="text-red-800 font-medium mb-2">Please fix the following errors:</p>
                             <ul class="text-red-700 text-sm space-y-1">
-                                @foreach($errors->all() as $error)
+                            @foreach($errors->all() as $error)
                                     <li>• {{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
+                            @endforeach
+                        </ul>
                     </div>
                 </div>
-            @endif
+            </div>
+        @endif
 
-            <!-- Upload Section -->
+        <!-- Upload Section -->
             <div class="mb-12">
                 <div class="bg-white/60 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-xl">
-                    <div class="text-center mb-8">
+            <div class="text-center mb-8">
                         <h2 class="text-2xl font-bold text-gray-800 mb-2">Upload Your Sermon</h2>
                         <p class="text-gray-600">Choose to upload an audio file or record directly</p>
-                    </div>
+            </div>
 
                     <!-- Upload Options -->
                     <div class="grid md:grid-cols-2 gap-6">
@@ -87,7 +105,7 @@
                                 <p class="text-gray-600 mb-4">Drag and drop or click to select audio files</p>
                                 
                                 <form action="{{ route('transcribe.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4" id="upload-form">
-                                    @csrf
+                @csrf
                                     <div class="relative">
                                         <input type="file" 
                                                name="audio" 
@@ -110,9 +128,9 @@
                                             <option value="auto">Auto-detect (Recommended)</option>
                                             <option value="en">English</option>
                                             <option value="sw">Swahili</option>
-                                        </select>
-                                    </div>
-                                    
+                        </select>
+                    </div>
+                    
                                     <button type="submit" 
                                             id="submit-btn"
                                             class="w-full py-3 px-6 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
@@ -150,15 +168,15 @@
                                                 class="w-16 h-16 bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white hover:from-green-600 hover:to-teal-600 transition-all duration-300 transform hover:scale-110 shadow-lg">
                                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
-                                            </svg>
+                            </svg>
                                         </button>
-                                    </div>
+                        </div>
                                     
                                     <button id="save-recording" 
                                             class="w-full py-3 px-6 bg-gradient-to-r from-green-500 to-teal-500 text-white font-semibold rounded-xl hover:from-green-600 hover:to-teal-600 transition-all duration-300 transform hover:scale-105 shadow-lg hidden">
                                         Save & Transcribe Recording
-                                    </button>
-                                </div>
+                    </button>
+                </div>
                             </div>
                         </div>
                     </div>
@@ -167,14 +185,131 @@
 
             <!-- Transcripts Section -->
             <div class="bg-white/60 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-xl">
-                <div class="flex items-center justify-between mb-8">
-                    <h2 class="text-2xl font-bold text-gray-800">Your Transcripts</h2>
-                    <div class="text-sm text-gray-600">{{ $items->count() }} transcript{{ $items->count() !== 1 ? 's' : '' }}</div>
-                </div>
+                                 <div class="flex items-center justify-between mb-8">
+                     <div>
+                         <h2 class="text-2xl font-bold text-gray-800">Your Transcripts</h2>
+                         <div class="flex items-center space-x-4 mt-2 text-sm text-gray-600">
+                             @if($showMode === 'one')
+                                 <span>{{ $items ? '1' : '0' }} transcript{{ $items ? '' : 's' }} showing</span>
+                             @else
+                                 <span>{{ $items instanceof \Illuminate\Pagination\LengthAwarePaginator ? $items->total() : $items->count() }} transcript{{ ($items instanceof \Illuminate\Pagination\LengthAwarePaginator ? $items->total() : $items->count()) !== 1 ? 's' : '' }} total</span>
+                                 @if($items instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                                     <span>•</span>
+                                     <span>{{ $items->count() }} showing</span>
+                                 @endif
+                             @endif
+                             <span>•</span>
+                             <span>{{ $storageUsage['file_count'] }} audio files</span>
+                             <span>•</span>
+                             <span>{{ $storageUsage['formatted_size'] }} used</span>
+                         </div>
+                     </div>
+                     
+                                           <!-- Display Options -->
+                      <div class="flex items-center space-x-2">
+                          <a href="{{ request()->fullUrlWithQuery(['show' => 'one']) }}" 
+                             class="px-3 py-1 text-xs bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors {{ !request('show') || request('show') === 'one' ? 'bg-green-200' : '' }}">
+                              One at a Time
+                          </a>
+                          <a href="{{ request()->fullUrlWithQuery(['show' => 'paginated']) }}" 
+                             class="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors {{ request('show') === 'paginated' ? 'bg-blue-200' : '' }}">
+                              Paginated
+                          </a>
+                          <a href="{{ request()->fullUrlWithQuery(['show' => 'all']) }}" 
+                             class="px-3 py-1 text-xs bg-purple-100 text-purple-700 rounded-full hover:bg-purple-200 transition-colors {{ request('show') === 'all' ? 'bg-purple-200' : '' }}">
+                              Show All
+                          </a>
+                      </div>
+                 </div>
 
-                @if($items->count() > 0)
-                    <div class="grid gap-6">
-                        @foreach($items as $transcript)
+                                 @if($showMode === 'one' && $items)
+                     <!-- Single Transcript Display -->
+                     <div class="bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-white/40 hover:border-purple-200/60 transition-all duration-300 hover:shadow-lg">
+                         <div class="flex items-start justify-between">
+                             <div class="flex-1">
+                                 <div class="flex items-center space-x-3 mb-3">
+                                     <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
+                                         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                         </svg>
+                                     </div>
+                                     <div>
+                                         <h3 class="text-lg font-semibold text-gray-800">{{ $items->title }}</h3>
+                                         <p class="text-sm text-gray-500">{{ $items->created_at->format('M j, Y \a\t g:i A') }}</p>
+                                         <p class="text-xs text-gray-400 mt-1">
+                                             <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                             </svg>
+                                             {{ str_replace('users/' . auth()->id() . '/audio/', '', $items->audio_path) }}
+                                         </p>
+                                     </div>
+                                 </div>
+                                 
+                                 <div class="mb-4">
+                                     <p class="text-gray-700 line-clamp-3">{{ Str::limit($items->text, 200) }}</p>
+                                 </div>
+                                 
+                                 <div class="flex items-center space-x-2 mb-4">
+                                     <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                                         {{ ucfirst($items->language) }}
+                                     </span>
+                                     @if($items->summary)
+                                         <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                             Summarized
+                                         </span>
+                                     @endif
+                                 </div>
+                             </div>
+                             
+                             <div class="flex flex-col space-y-2 ml-4">
+                                 @if(!$items->summary)
+                                     <form action="{{ route('transcribe.summarize', $items) }}" method="POST" class="inline">
+                                         @csrf
+                                         <button type="submit" 
+                                                 class="p-2 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-xl hover:from-green-600 hover:to-teal-600 transition-all duration-300 transform hover:scale-105">
+                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                             </svg>
+                                         </button>
+            </form>
+                                 @endif
+                                 
+                                 <a href="{{ route('transcribe.pdf', $items) }}" 
+                                    class="p-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl hover:from-red-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105">
+                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                     </svg>
+                                 </a>
+                                 
+                                                                   <a href="{{ route('transcribe.docx', $items) }}" 
+                                     class="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 transform hover:scale-105"
+                                     title="{{ !extension_loaded('zip') ? 'Will download as TXT (ZIP extension not available)' : 'Download as DOCX' }}">
+                                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                      </svg>
+                                  </a>
+                             </div>
+                         </div>
+                         
+                         @if($items->summary)
+                             <div class="mt-4 p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 shadow-sm">
+                                 <div class="flex items-center mb-4">
+                                     <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center mr-3">
+                                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                         </svg>
+                                     </div>
+                                     <h4 class="font-bold text-green-800 text-lg">AI Summary</h4>
+                                 </div>
+                                 <div class="prose prose-sm max-w-none text-green-700 leading-relaxed summary-content">
+                                     {!! nl2br(e($items->summary)) !!}
+                                 </div>
+                             </div>
+                         @endif
+                     </div>
+                 @elseif($items->count() > 0)
+                     <div class="grid gap-6">
+                         @foreach($items as $transcript)
                             <div class="bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-white/40 hover:border-purple-200/60 transition-all duration-300 hover:shadow-lg">
                                 <div class="flex items-start justify-between">
                                     <div class="flex-1">
@@ -184,10 +319,16 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                                 </svg>
                                             </div>
-                                            <div>
-                                                <h3 class="text-lg font-semibold text-gray-800">{{ $transcript->title }}</h3>
-                                                <p class="text-sm text-gray-500">{{ $transcript->created_at->format('M j, Y \a\t g:i A') }}</p>
-                                            </div>
+                                                                                         <div>
+                                                 <h3 class="text-lg font-semibold text-gray-800">{{ $transcript->title }}</h3>
+                                                 <p class="text-sm text-gray-500">{{ $transcript->created_at->format('M j, Y \a\t g:i A') }}</p>
+                                                 <p class="text-xs text-gray-400 mt-1">
+                                                     <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                     </svg>
+                                                     {{ str_replace('users/' . auth()->id() . '/audio/', '', $transcript->audio_path) }}
+                                                 </p>
+                                             </div>
                                         </div>
                                         
                                         <div class="mb-4">
@@ -204,8 +345,8 @@
                                                 </span>
                                             @endif
                                         </div>
-                                    </div>
-                                    
+        </div>
+
                                     <div class="flex flex-col space-y-2 ml-4">
                                         @if(!$transcript->summary)
                                             <form action="{{ route('transcribe.summarize', $transcript) }}" method="POST" class="inline">
@@ -226,38 +367,95 @@
                                             </svg>
                                         </a>
                                         
-                                        <a href="{{ route('transcribe.docx', $transcript) }}" 
-                                           class="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 transform hover:scale-105">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                            </svg>
-                                        </a>
+                                                                                 <a href="{{ route('transcribe.docx', $transcript) }}" 
+                                            class="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 transform hover:scale-105"
+                                            title="{{ !extension_loaded('zip') ? 'Will download as TXT (ZIP extension not available)' : 'Download as DOCX' }}">
+                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                             </svg>
+                                         </a>
                                     </div>
-                                </div>
-                                
+                </div>
+
                                 @if($transcript->summary)
-                                    <div class="mt-4 p-4 bg-green-50 rounded-xl border border-green-200">
-                                        <h4 class="font-semibold text-green-800 mb-2">Summary</h4>
-                                        <p class="text-green-700 text-sm">{{ $transcript->summary }}</p>
+                                    <div class="mt-4 p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 shadow-sm">
+                                        <div class="flex items-center mb-4">
+                                            <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center mr-3">
+                                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                                </svg>
+                                            </div>
+                                            <h4 class="font-bold text-green-800 text-lg">AI Summary</h4>
+                                        </div>
+                                        <div class="prose prose-sm max-w-none text-green-700 leading-relaxed summary-content">
+                                            {!! nl2br(e($transcript->summary)) !!}
+                                        </div>
                                     </div>
                                 @endif
                             </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="text-center py-12">
-                        <div class="w-24 h-24 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg class="w-12 h-12 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                        </div>
-                        <h3 class="text-xl font-semibold text-gray-800 mb-2">No transcripts yet</h3>
-                        <p class="text-gray-600">Upload your first sermon to get started!</p>
-                    </div>
-                @endif
+                    @endforeach
+                </div>
+                     
+                     <!-- Pagination -->
+                     @if($items instanceof \Illuminate\Pagination\LengthAwarePaginator && $items->hasPages())
+                         <div class="mt-8 flex justify-center">
+                             <div class="bg-white/60 backdrop-blur-md rounded-xl p-4 border border-white/20">
+                                 {{ $items->links() }}
+                             </div>
+                         </div>
+                     @endif
+                 @elseif($showMode === 'one' && !$items)
+                     <div class="text-center py-12">
+                         <div class="w-24 h-24 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                             <svg class="w-12 h-12 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                             </svg>
+                         </div>
+                         <h3 class="text-xl font-semibold text-gray-800 mb-2">No transcripts yet</h3>
+                         <p class="text-gray-600">Upload your first sermon to get started!</p>
             </div>
+                 @elseif($items->count() === 0)
+                     <div class="text-center py-12">
+                         <div class="w-24 h-24 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                             <svg class="w-12 h-12 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">No transcripts yet</h3>
+                         <p class="text-gray-600">Upload your first sermon to get started!</p>
+            </div>
+        @endif
+    </div>
         </div>
     </div>
+
+    <!-- Custom CSS for Summary Formatting -->
+    <style>
+        .summary-content {
+            line-height: 1.4;
+        }
+        .summary-content h1, .summary-content h2, .summary-content h3 {
+            color: #059669;
+            font-weight: 600;
+            margin-top: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+        .summary-content ul, .summary-content ol {
+            margin-left: 1.5rem;
+            margin-top: 0.25rem;
+            margin-bottom: 0.25rem;
+        }
+        .summary-content li {
+            margin-bottom: 0.1rem;
+        }
+        .summary-content strong, .summary-content b {
+            color: #047857;
+            font-weight: 600;
+        }
+        .summary-content p {
+            margin-bottom: 0.5rem;
+        }
+    </style>
 
     <!-- Custom Notification System -->
     <div id="notification-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
@@ -383,7 +581,7 @@
         });
 
                  dropZone.addEventListener('drop', function(e) {
-             e.preventDefault();
+                e.preventDefault();
              this.classList.remove('border-purple-400', 'bg-purple-50');
              
              const files = e.dataTransfer.files;
