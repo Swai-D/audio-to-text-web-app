@@ -1,0 +1,482 @@
+<x-app-layout>
+    <div class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
+        <!-- Header Section -->
+        <div class="bg-white/80 backdrop-blur-md border-b border-white/20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                            Sermon Transcriber
+                        </h1>
+                        <p class="text-gray-600 mt-1">Transform your audio sermons into text with AI</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-sm text-gray-500">Welcome, {{ Auth::user()->name }}</span>
+                        <a href="{{ route('profile.edit') }}" class="p-2 bg-white/50 rounded-xl hover:bg-white/70 transition-all duration-300">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                        </a>
+                        <a href="{{ route('logout') }}" 
+                           onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
+                           class="p-2 bg-red-500/10 rounded-xl hover:bg-red-500/20 transition-all duration-300">
+                            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                        </a>
+                    </div>
+                    
+                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
+                        @csrf
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Success/Error Messages -->
+            @if(session('ok'))
+                <div class="mb-6 bg-green-50 border border-green-200 rounded-xl p-4">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p class="text-green-800 font-medium">{{ session('ok') }}</p>
+                    </div>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-red-600 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div>
+                            <p class="text-red-800 font-medium mb-2">Please fix the following errors:</p>
+                            <ul class="text-red-700 text-sm space-y-1">
+                                @foreach($errors->all() as $error)
+                                    <li>• {{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Upload Section -->
+            <div class="mb-12">
+                <div class="bg-white/60 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-xl">
+                    <div class="text-center mb-8">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">Upload Your Sermon</h2>
+                        <p class="text-gray-600">Choose to upload an audio file or record directly</p>
+                    </div>
+
+                    <!-- Upload Options -->
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- File Upload -->
+                        <div class="bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-2xl p-6 border border-purple-200/50 hover:border-purple-300/50 transition-all duration-300">
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                    </svg>
+                                </div>
+                                <h3 class="text-lg font-semibold text-gray-800 mb-2">Upload Audio File</h3>
+                                <p class="text-gray-600 mb-4">Drag and drop or click to select audio files</p>
+                                
+                                <form action="{{ route('transcribe.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4" id="upload-form">
+                                    @csrf
+                                    <div class="relative">
+                                        <input type="file" 
+                                               name="audio" 
+                                               id="audio-file"
+                                               accept=".mp3,.wav,.m4a,.mp4"
+                                               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                               required>
+                                        <div class="border-2 border-dashed border-purple-300 rounded-xl p-6 text-center hover:border-purple-400 transition-colors duration-300" id="drop-zone">
+                                            <svg class="w-8 h-8 text-purple-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                            </svg>
+                                            <p class="text-gray-600" id="file-text">Click to select or drag files here</p>
+                                                                                         <p class="text-xs text-gray-500 mt-1">MP3, WAV, M4A, MP4 (max 300MB)</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="language" class="block text-sm font-medium text-gray-700 mb-2">Language</label>
+                                        <select name="language" id="language" class="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                            <option value="auto">Auto-detect (Recommended)</option>
+                                            <option value="en">English</option>
+                                            <option value="sw">Swahili</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <button type="submit" 
+                                            id="submit-btn"
+                                            class="w-full py-3 px-6 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <span id="submit-text">Upload & Transcribe</span>
+                                        <span id="loading-text" class="hidden">
+                                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Processing...
+                                        </span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Record Audio -->
+                        <div class="bg-gradient-to-br from-green-500/10 to-teal-500/10 rounded-2xl p-6 border border-green-200/50 hover:border-green-300/50 transition-all duration-300">
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                                    </svg>
+                                </div>
+                                <h3 class="text-lg font-semibold text-gray-800 mb-2">Record Audio</h3>
+                                <p class="text-gray-600 mb-4">Record your sermon directly in the browser</p>
+                                
+                                <div class="space-y-4">
+                                    <div class="border-2 border-dashed border-green-300 rounded-xl p-6 text-center">
+                                        <div id="recording-status" class="text-gray-600 mb-4">
+                                            <p>Click to start recording</p>
+                                        </div>
+                                        <div id="recording-timer" class="text-2xl font-bold text-green-600 mb-4 hidden">00:00</div>
+                                        <button id="record-btn" 
+                                                class="w-16 h-16 bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white hover:from-green-600 hover:to-teal-600 transition-all duration-300 transform hover:scale-110 shadow-lg">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    
+                                    <button id="save-recording" 
+                                            class="w-full py-3 px-6 bg-gradient-to-r from-green-500 to-teal-500 text-white font-semibold rounded-xl hover:from-green-600 hover:to-teal-600 transition-all duration-300 transform hover:scale-105 shadow-lg hidden">
+                                        Save & Transcribe Recording
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transcripts Section -->
+            <div class="bg-white/60 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-xl">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800">Your Transcripts</h2>
+                    <div class="text-sm text-gray-600">{{ $items->count() }} transcript{{ $items->count() !== 1 ? 's' : '' }}</div>
+                </div>
+
+                @if($items->count() > 0)
+                    <div class="grid gap-6">
+                        @foreach($items as $transcript)
+                            <div class="bg-white/80 backdrop-blur-md rounded-2xl p-6 border border-white/40 hover:border-purple-200/60 transition-all duration-300 hover:shadow-lg">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <div class="flex items-center space-x-3 mb-3">
+                                            <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h3 class="text-lg font-semibold text-gray-800">{{ $transcript->title }}</h3>
+                                                <p class="text-sm text-gray-500">{{ $transcript->created_at->format('M j, Y \a\t g:i A') }}</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-4">
+                                            <p class="text-gray-700 line-clamp-3">{{ Str::limit($transcript->text, 200) }}</p>
+                                        </div>
+                                        
+                                        <div class="flex items-center space-x-2 mb-4">
+                                            <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                                                {{ ucfirst($transcript->language) }}
+                                            </span>
+                                            @if($transcript->summary)
+                                                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                                    Summarized
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex flex-col space-y-2 ml-4">
+                                        @if(!$transcript->summary)
+                                            <form action="{{ route('transcribe.summarize', $transcript) }}" method="POST" class="inline">
+                                                @csrf
+                                                <button type="submit" 
+                                                        class="p-2 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-xl hover:from-green-600 hover:to-teal-600 transition-all duration-300 transform hover:scale-105">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        @endif
+                                        
+                                        <a href="{{ route('transcribe.pdf', $transcript) }}" 
+                                           class="p-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl hover:from-red-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                            </svg>
+                                        </a>
+                                        
+                                        <a href="{{ route('transcribe.docx', $transcript) }}" 
+                                           class="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 transform hover:scale-105">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                                
+                                @if($transcript->summary)
+                                    <div class="mt-4 p-4 bg-green-50 rounded-xl border border-green-200">
+                                        <h4 class="font-semibold text-green-800 mb-2">Summary</h4>
+                                        <p class="text-green-700 text-sm">{{ $transcript->summary }}</p>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center py-12">
+                        <div class="w-24 h-24 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-12 h-12 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">No transcripts yet</h3>
+                        <p class="text-gray-600">Upload your first sermon to get started!</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Notification System -->
+    <div id="notification-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <!-- File Upload & Recording JavaScript -->
+    <script>
+        // Custom Notification System
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            
+            const colors = {
+                success: 'bg-green-50 border-green-200 text-green-800',
+                error: 'bg-red-50 border-red-200 text-red-800',
+                warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+                info: 'bg-blue-50 border-blue-200 text-blue-800'
+            };
+            
+            const icons = {
+                success: `<svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>`,
+                error: `<svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>`,
+                warning: `<svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>`,
+                info: `<svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>`
+            };
+            
+            notification.className = `flex items-center p-4 rounded-xl border backdrop-blur-md shadow-lg transform transition-all duration-300 ${colors[type]} opacity-0 translate-x-full`;
+            notification.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    ${icons[type]}
+                    <p class="font-medium">${message}</p>
+                </div>
+                <button onclick="this.parentElement.remove()" class="ml-4 text-gray-400 hover:text-gray-600 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            `;
+            
+            container.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('opacity-0', 'translate-x-full');
+            }, 100);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                notification.classList.add('opacity-0', 'translate-x-full');
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, 5000);
+        }
+
+        // File Upload Enhancement
+        const audioFile = document.getElementById('audio-file');
+        const dropZone = document.getElementById('drop-zone');
+        const fileText = document.getElementById('file-text');
+        const uploadForm = document.getElementById('upload-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const submitText = document.getElementById('submit-text');
+        const loadingText = document.getElementById('loading-text');
+
+                 // File selection handling
+         audioFile.addEventListener('change', function(e) {
+             const file = e.target.files[0];
+             if (file) {
+                 // Debug file info
+                 console.log('File selected:', {
+                     name: file.name,
+                     type: file.type,
+                     size: file.size,
+                     extension: file.name.split('.').pop().toLowerCase()
+                 });
+                 
+                 // Validate file size (300MB = 300 * 1024 * 1024 bytes)
+                 if (file.size > 300 * 1024 * 1024) {
+                     showNotification('File size must be less than 300MB', 'error');
+                     this.value = '';
+                     return;
+                 }
+
+                 // Validate file type - check both MIME type and extension
+                 const allowedTypes = ['audio/mp3', 'audio/wav', 'audio/m4a', 'audio/mp4', 'video/mp4', 'audio/mpeg'];
+                 const allowedExtensions = ['mp3', 'wav', 'm4a', 'mp4'];
+                 const fileExtension = file.name.split('.').pop().toLowerCase();
+                 
+                 if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
+                     showNotification(`File type not supported. Got: ${file.type} (${fileExtension}). Please select MP3, WAV, M4A, or MP4 files.`, 'error');
+                     this.value = '';
+                     return;
+                 }
+
+                                 // Update UI
+                 fileText.textContent = `Selected: ${file.name}`;
+                 dropZone.classList.add('border-green-400', 'bg-green-50');
+                 dropZone.classList.remove('border-purple-300');
+                 
+                 // Show success notification
+                 showNotification(`File "${file.name}" selected successfully!`, 'success');
+            }
+        });
+
+        // Drag and drop functionality
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('border-purple-400', 'bg-purple-50');
+        });
+
+        dropZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('border-purple-400', 'bg-purple-50');
+        });
+
+                 dropZone.addEventListener('drop', function(e) {
+             e.preventDefault();
+             this.classList.remove('border-purple-400', 'bg-purple-50');
+             
+             const files = e.dataTransfer.files;
+             if (files.length > 0) {
+                 audioFile.files = files;
+                 audioFile.dispatchEvent(new Event('change'));
+                 showNotification('File dropped successfully!', 'success');
+             }
+         });
+
+                 // Form submission handling
+         uploadForm.addEventListener('submit', function(e) {
+             if (!audioFile.files[0]) {
+                 e.preventDefault();
+                 showNotification('Please select an audio file', 'warning');
+                 return;
+             }
+
+            // Show loading state
+            submitBtn.disabled = true;
+            submitText.classList.add('hidden');
+            loadingText.classList.remove('hidden');
+        });
+
+        // Recording functionality
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        let recordingTimer;
+
+        const recordBtn = document.getElementById('record-btn');
+        const recordingStatus = document.getElementById('recording-status');
+        const recordingTimerEl = document.getElementById('recording-timer');
+        const saveRecordingBtn = document.getElementById('save-recording');
+
+        recordBtn.addEventListener('click', async () => {
+            if (!isRecording) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = (event) => {
+                        audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        // Here you would typically upload the blob to your server
+                        console.log('Recording saved:', audioBlob);
+                    };
+
+                    mediaRecorder.start();
+                    isRecording = true;
+                    recordBtn.innerHTML = `
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
+                        </svg>
+                    `;
+                                         recordingStatus.innerHTML = '<p class="text-red-600">Recording...</p>';
+                     recordingTimerEl.classList.remove('hidden');
+                     saveRecordingBtn.classList.remove('hidden');
+                     
+                     // Show recording started notification
+                     showNotification('Recording started! Click the button again to stop.', 'info');
+                    
+                    // Start timer
+                    let seconds = 0;
+                    recordingTimer = setInterval(() => {
+                        seconds++;
+                        const mins = Math.floor(seconds / 60);
+                        const secs = seconds % 60;
+                        recordingTimerEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                    }, 1000);
+                                 } catch (err) {
+                     console.error('Error accessing microphone:', err);
+                     showNotification('Unable to access microphone. Please check permissions.', 'error');
+                 }
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                recordBtn.innerHTML = `
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                    </svg>
+                `;
+                                 recordingStatus.innerHTML = '<p class="text-green-600">Recording saved!</p>';
+                 clearInterval(recordingTimer);
+                 
+                 // Show recording stopped notification
+                 showNotification('Recording stopped! Audio saved successfully.', 'success');
+            }
+        });
+    </script>
+</x-app-layout>
