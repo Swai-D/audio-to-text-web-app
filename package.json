@@ -6,6 +6,7 @@
         "dev": "vite",
         "build": "vite build",
         "build:production": "vite build --mode production",
+        "build:prod": "npm run build:production",
         "preview": "vite preview",
         "postinstall": "npm run build"
     },
