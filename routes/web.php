@@ -4,14 +4,10 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TranscriptionController;
 use Illuminate\Support\Facades\Route;
 
-// Root and welcome routes
-Route::get('/', function () {
+// Single welcome route that handles both / and /welcome
+Route::get('/{path?}', function ($path = null) {
     return view('welcome');
-})->name('root');
-
-Route::get('/welcome', function () {
-    return view('welcome');
-})->name('welcome');
+})->where('path', '^(welcome)?$')->name('welcome');
 
 // Home page (main app) - requires authentication
 Route::get('/home', [TranscriptionController::class, 'index'])->middleware(['auth', 'verified'])->name('home');
