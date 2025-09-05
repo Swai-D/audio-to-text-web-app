@@ -1,11 +1,14 @@
 # Stage 1: build frontend with Node 20
 FROM node:20.19.0 AS node-build
 WORKDIR /app
+
+# copy package manifest and vite config + frontend source BEFORE installing so build can find index.html
 COPY package.json package-lock.json* ./
-RUN npm ci
-COPY resources resources
-COPY vite.config.* .
-RUN npm run build
+COPY vite.config.* ./
+COPY resources ./resources
+
+# install deps without running lifecycle scripts, then run build explicitly
+RUN npm ci --ignore-scripts && npm run build
 
 # Stage 2: php app
 FROM php:8.2-apache
