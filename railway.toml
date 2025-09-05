@@ -1,11 +1,12 @@
 [build]
-builder = "nixpacks"
+# remove nixpacks or set to docker
+# builder = "nixpacks"
 
 [deploy]
-startCommand = "php artisan serve --host=0.0.0.0 --port=$PORT"
+startCommand = "apache2-foreground"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 
 [deploy.envs]
-NODE_ENV = "production" 
+NODE_ENV = "production"
