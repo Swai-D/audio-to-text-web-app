@@ -5,12 +5,18 @@ use App\Http\Controllers\TranscriptionController;
 use Illuminate\Support\Facades\Route;
 
 // Welcome page for guests
+Route::get('/', function () {
+    return view('welcome');
+})->name('welcome');
+
+
+// Welcome page for guests
 Route::get('/welcome', function () {
     return view('welcome');
 })->name('welcome');
 
 // Home page (main app) - requires authentication
-Route::get('/', [TranscriptionController::class, 'index'])->middleware(['auth', 'verified'])->name('home');
+Route::get('/home', [TranscriptionController::class, 'index'])->middleware(['auth', 'verified'])->name('home');
 
 // Dashboard redirects to home
 Route::get('/dashboard', function () {
