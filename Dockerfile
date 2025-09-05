@@ -1,9 +1,17 @@
 # stage 1 - build frontend with Node (use Node 20.19+)
 FROM node:20.19 AS node-build
 WORKDIR /app
+
+# copy package files first for caching
 COPY package*.json ./
-RUN npm ci --silent
+
+# install deps but skip postinstall scripts so build happens after full copy
+RUN npm ci --silent --ignore-scripts
+
+# copy rest of source (index.html, resources, vite config etc.)
 COPY . .
+
+# now run the frontend build
 RUN npm run build:production --silent
 
 # stage 2 - install PHP dependencies with Composer
