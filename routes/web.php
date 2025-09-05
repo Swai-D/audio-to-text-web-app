@@ -15,18 +15,15 @@ use Illuminate\Http\Response;
 |
 */
 
-Route::get('/', function () {
+// Welcome page for guests
+Route::get('/welcome', function () {
     return view('welcome');
 })->name('welcome');
 
-Route::get('/welcome', function () {
-    return view('welcome');
-})->name('welcome.page');
+// Home page (main app) - requires authentication
+Route::get('/', [TranscriptionController::class, 'index'])->middleware(['auth', 'verified'])->name('home');
 
-Route::get('/home', [TranscriptionController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('home');
-
+// Dashboard redirects to home
 Route::get('/dashboard', function () {
     return redirect()->route('home');
 })->middleware(['auth', 'verified'])->name('dashboard');
