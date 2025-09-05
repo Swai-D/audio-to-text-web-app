@@ -5,7 +5,7 @@
         "buildCommand": "composer install --no-dev --optimize-autoloader && npm ci && npm run build:production"
     },
     "deploy": {
-        "startCommand": "sh -c 'php artisan config:cache && php artisan view:cache && php -S 0.0.0.0:${PORT} -t public'",
+        "startCommand": "sh -c 'php artisan storage:link || true && php artisan up || true && php artisan optimize:clear || true && php -S 0.0.0.0:${PORT} -t public'",
         "healthcheckPath": "/",
         "healthcheckTimeout": 100,
         "restartPolicyType": "ON_FAILURE",
