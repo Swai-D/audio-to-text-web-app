@@ -4,13 +4,11 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TranscriptionController;
 use Illuminate\Support\Facades\Route;
 
-// Welcome page for guests
+// Root and welcome routes
 Route::get('/', function () {
     return view('welcome');
-})->name('welcome');
+})->name('root');
 
-
-// Welcome page for guests
 Route::get('/welcome', function () {
     return view('welcome');
 })->name('welcome');
